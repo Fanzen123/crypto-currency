@@ -8,7 +8,7 @@ public abstract class AbstractTest {
     @Autowired
     protected MockMvc mockMvc;
 
-    static protected final int port = 8089;
+    static protected final int port = 8980;
 
     static protected final String host = "localhost";
 
