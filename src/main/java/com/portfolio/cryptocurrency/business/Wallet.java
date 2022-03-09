@@ -16,12 +16,17 @@ public class Wallet {
 
         if(!map.containsValue(cryptoCurrency.getSymbol())) {
             globalCryptoCurrency = new GlobalCryptoCurrency();
+            globalCryptoCurrency.setId(1L);
+            globalCryptoCurrency.setSymbol(cryptoCurrency.getSymbol());
+            globalCryptoCurrency.setAmount(0L);
+            globalCryptoCurrency.setOldMarketValue(0L);
+            globalCryptoCurrency.setActualMarketValue(0L);
             map.put(cryptoCurrency.getSymbol(), globalCryptoCurrency);
         } else {
             globalCryptoCurrency = map.get(cryptoCurrency.getSymbol());
         }
 
-        globalCryptoCurrency.setId(1L);
+
         globalCryptoCurrency.setAmount(globalCryptoCurrency.getAmount() + cryptoCurrency.getAmount());
         globalCryptoCurrency.setLocation(cryptoCurrency.getLocation());
         globalCryptoCurrency.setEntryDate(cryptoCurrency.getDate());
