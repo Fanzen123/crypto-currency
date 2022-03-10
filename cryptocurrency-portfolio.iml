@@ -8,9 +8,12 @@
       <sourceFolder url="file://$MODULE_DIR$/src/test" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="openjdk-17" jdkType="JavaSDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="Maven: com.google.code.gson:gson:2.9.0" level="project" />
+    <orderEntry type="library" name="Maven: com.google.code.gson:gson:2.2.4" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpclient:4.3" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpcore:4.4.12" level="project" />
+    <orderEntry type="library" name="Maven: commons-codec:commons-codec:1.13" level="project" />
     <orderEntry type="module" module-name="cryptocurrency-portfolio-contract" />
     <orderEntry type="library" name="Maven: javax.validation:validation-api:2.0.1.Final" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.data:spring-data-jpa:2.2.3.RELEASE" level="project" />
@@ -98,7 +101,6 @@
     <orderEntry type="library" name="Maven: org.springframework:spring-beans:5.2.2.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-expression:5.2.2.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.30" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: junit:junit:4.12" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: org.hamcrest:hamcrest-core:2.1" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: junit:junit:3.8.1" level="project" />
   </component>
 </module>

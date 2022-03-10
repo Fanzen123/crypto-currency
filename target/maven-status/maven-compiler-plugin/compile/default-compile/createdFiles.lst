@@ -1,3 +1,6 @@
 com/portfolio/cryptocurrency/CryptoCurrencyPortfolio.class
-com/portfolio/cryptocurrency/api/ItemApiDelegateImpl.class
+com/portfolio/cryptocurrency/business/Market$1.class
 com/portfolio/cryptocurrency/api/ItemApi.class
+com/portfolio/cryptocurrency/business/Wallet.class
+com/portfolio/cryptocurrency/business/Market.class
+com/portfolio/cryptocurrency/api/ItemApiDelegateImpl.class
