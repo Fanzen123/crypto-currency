@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+
 @Component
 class ItemApiDelegateImpl implements ItemApiDelegate {
 
@@ -16,7 +18,13 @@ class ItemApiDelegateImpl implements ItemApiDelegate {
     @Override
     public ResponseEntity<GlobalCryptoCurrency> addCryptoCurrencyAsset(CryptoCurrency cryptoCurrency) {
 
-        GlobalCryptoCurrency globalCryptoCurrency = wallet.addCryptoCurrencyAsset(cryptoCurrency);
+        GlobalCryptoCurrency globalCryptoCurrency = null;
+        try {
+            globalCryptoCurrency = wallet.addCryptoCurrencyAsset(cryptoCurrency);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
 
         return new ResponseEntity<>(globalCryptoCurrency, HttpStatus.CREATED);
     }

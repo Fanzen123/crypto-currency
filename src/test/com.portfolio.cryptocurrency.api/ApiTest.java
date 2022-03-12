@@ -1,7 +1,10 @@
 package com.portfolio.cryptocurrency.api;
 
+import com.contract.cryptocurrency_portfolio_contract.dto.Symbol;
 import com.portfolio.cryptocurrency.AbstractTest;
+import com.portfolio.cryptocurrency.business.Market;
 import junit.framework.Assert;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,18 +16,35 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.io.IOException;
+import java.time.LocalDate;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
+/**
+ * Component integration test
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class ApiTest extends AbstractTest {
 
+    public static final String URL_ENTRY = "/item";
     Logger logger = LoggerFactory.getLogger(ApiTest.class);
 
     public final String URL = String.format("http://%s:%d", host, port);
 
-    public final String URL_ADD = URL + "/item";
+    public final String URL_ADD = URL + URL_ENTRY;
+
+    private double BITCOIN_VALUE;
+
+    private double ETHEREUM_VALUE;
+
+    @BeforeEach
+    public void defineValues() throws IOException {
+        BITCOIN_VALUE = new Market().getActualValue(Symbol.BITCOIN);
+        ETHEREUM_VALUE = new Market().getActualValue(Symbol.ETHEREUM);
+    }
 
     @Test
     public void shouldReturnHttp201WhenUserAddCryptoCurrency() throws Exception {
@@ -34,8 +54,7 @@ public class ApiTest extends AbstractTest {
 
         logger.info(String.format("WHEN : an user add a cryptocurrency asset by calling the service on endpoint %s with content = %s", URL_ADD, cryptoCurrency));
         final ResultActions result = this.mockMvc
-                .perform(post("/item")
-                        .content(cryptoCurrency).contentType(MediaType.APPLICATION_JSON));
+                .perform(post(URL_ENTRY).content(cryptoCurrency).contentType(MediaType.APPLICATION_JSON));
 
         logger.info("THEN : an http code 201 is returned");
         Assert.assertEquals(HttpStatus.CREATED.value(), result.andReturn().getResponse().getStatus());
@@ -45,17 +64,16 @@ public class ApiTest extends AbstractTest {
     public void shouldCryptoCurrencyBeSimilarWhenUserAddCryptoCurrencyOnFirstTime() throws Exception {
 
         logger.info("GIVEN : an user want to add a cryptocurrency asset using the existing services available.");
-        final String cryptoCurrency = "{\"symbol\":\"BITCOIN\",\"location\":\"BITFINEX\",\"amount\":10,\"date\":\"2021-06-08\"}";
+        final String cryptoCurrency = "{\"symbol\":\"BITCOIN\",\"location\":\"BITFINEX\",\"amount\":10}";
 
-        final String jsonExpected = "{\"id\":1,\"symbol\":\"BITCOIN\",\"amount\":10,\"entryDate\":\"2021-06-08\"," +
-                "\"location\":\"BITFINEX\",\"oldMarketValue\":10,\"actualMarketValue\":10}";
+        final String jsonExpected = "{\"id\":1,\"symbol\":\"BITCOIN\",\"amount\":10.0,\"entryDate\":\"" + LocalDate.now() + "\"," +
+                "\"location\":\"BITFINEX\",\"oldMarketValue\":" + ( BITCOIN_VALUE * 10 )+ ",\"actualMarketValue\":" + ( BITCOIN_VALUE * 10 ) + "}";
 
-        logger.info(String.format("WHEN : an user add a cryptocurrency asset by calling the service on endpoint %s with content = %s", URL_ADD, cryptoCurrency));
+        logger.info(String.format("WHEN : an user add a cryptoCurrency asset by calling the service on endpoint %s with content = %s", URL_ADD, cryptoCurrency));
         final ResultActions result = this.mockMvc
-                .perform(post("/item")
-                        .content(cryptoCurrency).contentType(MediaType.APPLICATION_JSON));
+                .perform(post(URL_ENTRY).content(cryptoCurrency).contentType(MediaType.APPLICATION_JSON));
 
-        logger.info("THEN : a json content describing the same data crypto because it is the first entry for the cryptoCurrency.");
+        logger.info("THEN : a json content describing similar data because it is the first entry for the cryptoCurrency.");
         Assert.assertEquals(jsonExpected, result.andReturn().getResponse().getContentAsString());
     }
 
@@ -63,20 +81,18 @@ public class ApiTest extends AbstractTest {
     public void shouldReturnBeIncrementedWhenUserAddCryptoCurrencyMultipleTime() throws Exception {
 
         logger.info("GIVEN : an user want to add a cryptocurrency asset using the existing services available.");
-        final String cryptoCurrency1 = "{\"symbol\":\"BITCOIN\",\"location\":\"BITFINEX\",\"amount\":10,\"date\":\"2021-06-08\"}";
-        final String cryptoCurrency2 = "{\"symbol\":\"BITCOIN\",\"location\":\"BITFINEX\",\"amount\":20,\"date\":\"2019-06-08\"}";
+        final String cryptoCurrency1 = "{\"symbol\":\"BITCOIN\",\"location\":\"BITFINEX\",\"amount\":10}";
+        final String cryptoCurrency2 = "{\"symbol\":\"BITCOIN\",\"location\":\"BITFINEX\",\"amount\":20}";
 
-        final String jsonExpected = "{\"id\":1,\"symbol\":\"BITCOIN\",\"amount\":30,\"entryDate\":\"2019-06-08\"," +
-                "\"location\":\"BITFINEX\",\"oldMarketValue\":30,\"actualMarketValue\":30}";
+        final String jsonExpected = "{\"id\":1,\"symbol\":\"BITCOIN\",\"amount\":30.0,\"entryDate\":\"" + LocalDate.now() + "\"," +
+                "\"location\":\"BITFINEX\",\"oldMarketValue\":" + ( BITCOIN_VALUE * 30 ) + ",\"actualMarketValue\":" + ( BITCOIN_VALUE * 30 ) + "}";
 
         logger.info(String.format("WHEN : an user add a cryptocurrency asset by twice calling the service on endpoint %s ", URL_ADD));
         this.mockMvc
-                .perform(post("/item")
-                        .content(cryptoCurrency1).contentType(MediaType.APPLICATION_JSON)).andReturn();
+                .perform(post(URL_ENTRY).content(cryptoCurrency1).contentType(MediaType.APPLICATION_JSON)).andReturn();
 
         MvcResult mvcResult = this.mockMvc
-                .perform(post("/item")
-                        .content(cryptoCurrency2).contentType(MediaType.APPLICATION_JSON)).andReturn();
+                .perform(post(URL_ENTRY).content(cryptoCurrency2).contentType(MediaType.APPLICATION_JSON)).andReturn();
 
         logger.info("THEN : a json content describing the global data cryptoCurrency.");
         Assert.assertEquals(jsonExpected, mvcResult.getResponse().getContentAsString());

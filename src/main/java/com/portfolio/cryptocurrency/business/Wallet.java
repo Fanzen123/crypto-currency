@@ -3,43 +3,59 @@ package com.portfolio.cryptocurrency.business;
 import com.contract.cryptocurrency_portfolio_contract.dto.CryptoCurrency;
 import com.contract.cryptocurrency_portfolio_contract.dto.GlobalCryptoCurrency;
 import com.contract.cryptocurrency_portfolio_contract.dto.Symbol;
+import com.portfolio.cryptocurrency.bo.AssetBusiness;
+import com.portfolio.cryptocurrency.bo.CryptoCurrencyBusiness;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.HashMap;
 
+/**
+ * Wallet
+ */
 public class Wallet {
 
     private final Market market = new Market();
-    private HashMap<Symbol, GlobalCryptoCurrency> map = new HashMap<>();
+    private final HashMap<Symbol, CryptoCurrencyBusiness> map = new HashMap<>();
 
-    public GlobalCryptoCurrency addCryptoCurrencyAsset(CryptoCurrency cryptoCurrency) {
+    /**
+     * Persist a cryptoCurrency asset
+     * @param cryptoCurrency
+     * @return a global state
+     * @throws IOException an IOException
+     */
+    public GlobalCryptoCurrency addCryptoCurrencyAsset(CryptoCurrency cryptoCurrency) throws IOException {
 
-        GlobalCryptoCurrency globalCryptoCurrency;
+        CryptoCurrencyBusiness cryptoCurrencyBusiness;
 
-        if(!map.containsKey(cryptoCurrency.getSymbol())) {
-            globalCryptoCurrency = new GlobalCryptoCurrency();
-            globalCryptoCurrency.setId(1L);
-            globalCryptoCurrency.setSymbol(cryptoCurrency.getSymbol());
-            globalCryptoCurrency.setAmount(cryptoCurrency.getAmount());
-            globalCryptoCurrency.setEntryDate(cryptoCurrency.getDate());
-            map.put(cryptoCurrency.getSymbol(), globalCryptoCurrency);
+        double actualMarketValue = market.getActualValue(cryptoCurrency.getSymbol());
+
+        if (!map.containsKey(cryptoCurrency.getSymbol())) {
+            cryptoCurrencyBusiness = new CryptoCurrencyBusiness();
+            cryptoCurrencyBusiness.setId(map.size() + 1L);
+            cryptoCurrencyBusiness.setSymbol(cryptoCurrency.getSymbol());
+            cryptoCurrencyBusiness.setAmount(cryptoCurrency.getAmount());
+            cryptoCurrencyBusiness.setEntryDate(LocalDate.now());
+            double globalActualMarketValue = actualMarketValue * cryptoCurrencyBusiness.getAmount();
+            cryptoCurrencyBusiness.setActualMarketValue(globalActualMarketValue);
+            map.put(cryptoCurrency.getSymbol(), cryptoCurrencyBusiness);
         } else {
-            globalCryptoCurrency = map.get(cryptoCurrency.getSymbol());
-            if(cryptoCurrency.getDate().isBefore(globalCryptoCurrency.getEntryDate())) {
-                globalCryptoCurrency.setEntryDate(cryptoCurrency.getDate());
-            }
-            globalCryptoCurrency.setAmount(globalCryptoCurrency.getAmount() + cryptoCurrency.getAmount());
+            cryptoCurrencyBusiness = map.get(cryptoCurrency.getSymbol());
+            cryptoCurrencyBusiness.setAmount(cryptoCurrencyBusiness.getAmount() + cryptoCurrency.getAmount());
+            cryptoCurrencyBusiness.setActualMarketValue(actualMarketValue * cryptoCurrencyBusiness.getAmount());
         }
 
-        globalCryptoCurrency.setLocation(cryptoCurrency.getLocation());
-        try {
-            globalCryptoCurrency.setActualMarketValue(
-                    market.getActualValue(globalCryptoCurrency.getSymbol()) * globalCryptoCurrency.getAmount());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        globalCryptoCurrency.setOldMarketValue(globalCryptoCurrency.getAmount() * 1);
+        cryptoCurrencyBusiness.getAssets().add(
+                new AssetBusiness(cryptoCurrency.getAmount(), actualMarketValue));
 
-        return globalCryptoCurrency;
+        Double valueAtTheTimeOfPurchase = cryptoCurrencyBusiness.getAssets().stream()
+                .map(asset -> asset.getNumber() * asset.getValueAtTheTimeOfPurchase())
+                .reduce(0D, Double::sum);
+
+        cryptoCurrencyBusiness.setOldMarketValue(valueAtTheTimeOfPurchase);
+
+        cryptoCurrencyBusiness.setLocation(cryptoCurrency.getLocation());
+
+        return cryptoCurrencyBusiness;
     }
 }

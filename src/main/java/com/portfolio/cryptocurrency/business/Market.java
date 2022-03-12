@@ -12,29 +12,41 @@ import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
 
+/**
+ * Market value
+ */
 public class Market {
 
-    CloseableHttpClient httpClient = HttpClients.createDefault();
+    private final CloseableHttpClient httpClient = HttpClients.createDefault();
     public static final String URL_API_GET_VALUE = "https://api.bitfinex.com/v1/pubticker/";
     public static final String PRICE_PARAM = "last_price";
 
-    public long getActualValue(Symbol symbol) throws IOException {
+    /**
+     * Return the actual value from given symbol
+     * @param symbol
+     * @return actual value
+     * @throws IOException
+     */
+    public double getActualValue(Symbol symbol) throws IOException {
 
         String result = null;
 
         switch (symbol) {
             case BITCOIN:
                 result = doGetRequest(URL_API_GET_VALUE + "btceur");
-            case ETHERUM:
+                break;
+            case ETHEREUM:
                 result = doGetRequest(URL_API_GET_VALUE + "etheur");
+                break;
         }
 
         final GsonBuilder builder = new GsonBuilder();
         final Gson gson = builder.create();
         JsonObject  jsonObject = gson.fromJson(result, JsonObject.class);
 
-        return jsonObject.get(PRICE_PARAM).getAsLong();
+        return jsonObject.get(PRICE_PARAM).getAsDouble();
     }
+
 
     public String doGetRequest(String url) throws IOException {
         HttpGet request = new HttpGet(url);
