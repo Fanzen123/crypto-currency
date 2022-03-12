@@ -6,16 +6,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CryptoCurrencyBusiness extends GlobalCryptoCurrency {
+public class CryptoCurrencyDetails extends GlobalCryptoCurrency {
 
     @JsonIgnore
-    private List<AssetBusiness> assets = new ArrayList();
+    private List<Asset> assets = new ArrayList();
 
-    public List<AssetBusiness> getAssets() {
+    public List<Asset> getAssets() {
         return assets;
     }
 
-    public void setAssets(List<AssetBusiness> assets) {
-        this.assets = assets;
-    }
 }

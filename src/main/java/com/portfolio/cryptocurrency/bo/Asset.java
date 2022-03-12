@@ -1,11 +1,11 @@
 package com.portfolio.cryptocurrency.bo;
 
-public class AssetBusiness {
+public class Asset {
 
     private double number;
     private double valueAtTheTimeOfPurchase;
 
-    public AssetBusiness(double number, double valueAtTheTimeOfPurchase) {
+    public Asset(double number, double valueAtTheTimeOfPurchase) {
         this.number = number;
         this.valueAtTheTimeOfPurchase = valueAtTheTimeOfPurchase;
     }

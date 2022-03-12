@@ -3,12 +3,14 @@ package com.portfolio.cryptocurrency.business;
 import com.contract.cryptocurrency_portfolio_contract.dto.CryptoCurrency;
 import com.contract.cryptocurrency_portfolio_contract.dto.GlobalCryptoCurrency;
 import com.contract.cryptocurrency_portfolio_contract.dto.Symbol;
-import com.portfolio.cryptocurrency.bo.AssetBusiness;
-import com.portfolio.cryptocurrency.bo.CryptoCurrencyBusiness;
+import com.portfolio.cryptocurrency.bo.Asset;
+import com.portfolio.cryptocurrency.bo.CryptoCurrencyDetails;
 
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Wallet
@@ -16,7 +18,7 @@ import java.util.HashMap;
 public class Wallet {
 
     private final Market market = new Market();
-    private final HashMap<Symbol, CryptoCurrencyBusiness> map = new HashMap<>();
+    private final HashMap<Symbol, CryptoCurrencyDetails> map = new HashMap<>();
 
     /**
      * Persist a cryptoCurrency asset
@@ -26,12 +28,12 @@ public class Wallet {
      */
     public GlobalCryptoCurrency addCryptoCurrencyAsset(CryptoCurrency cryptoCurrency) throws IOException {
 
-        CryptoCurrencyBusiness cryptoCurrencyBusiness;
+        CryptoCurrencyDetails cryptoCurrencyBusiness;
 
         double actualMarketValue = market.getActualValue(cryptoCurrency.getSymbol());
 
         if (!map.containsKey(cryptoCurrency.getSymbol())) {
-            cryptoCurrencyBusiness = new CryptoCurrencyBusiness();
+            cryptoCurrencyBusiness = new CryptoCurrencyDetails();
             cryptoCurrencyBusiness.setId(map.size() + 1L);
             cryptoCurrencyBusiness.setSymbol(cryptoCurrency.getSymbol());
             cryptoCurrencyBusiness.setAmount(cryptoCurrency.getAmount());
@@ -46,7 +48,7 @@ public class Wallet {
         }
 
         cryptoCurrencyBusiness.getAssets().add(
-                new AssetBusiness(cryptoCurrency.getAmount(), actualMarketValue));
+                new Asset(cryptoCurrency.getAmount(), actualMarketValue));
 
         Double valueAtTheTimeOfPurchase = cryptoCurrencyBusiness.getAssets().stream()
                 .map(asset -> asset.getNumber() * asset.getValueAtTheTimeOfPurchase())
@@ -57,5 +59,19 @@ public class Wallet {
         cryptoCurrencyBusiness.setLocation(cryptoCurrency.getLocation());
 
         return cryptoCurrencyBusiness;
+    }
+
+    public List<GlobalCryptoCurrency> getCryptoCurrencies() {
+        return map.values().stream().collect(Collectors.toList());
+    }
+
+    public GlobalCryptoCurrency getCryptoCurrency(Symbol symbol) {
+        return map.values().stream()
+                .filter(cryptoCurrencyBusiness -> cryptoCurrencyBusiness.getSymbol().equals(symbol))
+                .findFirst().orElse(null);
+    }
+
+    public void deleteCryptoCurrency(Symbol symbol) {
+        map.remove(symbol);
     }
 }

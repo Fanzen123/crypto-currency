@@ -19,22 +19,23 @@ import org.springframework.test.web.servlet.ResultActions;
 import java.io.IOException;
 import java.time.LocalDate;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 /**
- * Component integration test
+ *  Integration test component
  */
 @SpringBootTest
 @AutoConfigureMockMvc
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class ApiTest extends AbstractTest {
 
-    public static final String URL_ENTRY = "/item";
-    Logger logger = LoggerFactory.getLogger(ApiTest.class);
+    private static final String URL_ENTRY = "/item";
+    private static final String URL_GET_ENTRY = "/item/:symbol";
+    private Logger logger = LoggerFactory.getLogger(ApiTest.class);
 
-    public final String URL = String.format("http://%s:%d", host, port);
+    private final String URL = String.format("http://%s:%d", host, port);
 
-    public final String URL_ADD = URL + URL_ENTRY;
+    private final String URL_ADD = URL + URL_ENTRY;
 
     private double BITCOIN_VALUE;
 
@@ -61,7 +62,7 @@ public class ApiTest extends AbstractTest {
     }
 
     @Test
-    public void shouldCryptoCurrencyBeSimilarWhenUserAddCryptoCurrencyOnFirstTime() throws Exception {
+    public void shouldReturnCryptoCurrencyWhenUserAddCryptoCurrency() throws Exception {
 
         logger.info("GIVEN : an user want to add a cryptocurrency asset using the existing services available.");
         final String cryptoCurrency = "{\"symbol\":\"BITCOIN\",\"location\":\"BITFINEX\",\"amount\":10}";
@@ -78,7 +79,7 @@ public class ApiTest extends AbstractTest {
     }
 
     @Test
-    public void shouldReturnBeIncrementedWhenUserAddCryptoCurrencyMultipleTime() throws Exception {
+    public void shouldAdditionValuesWhenUserAddCryptoCurrencyMultipleTime() throws Exception {
 
         logger.info("GIVEN : an user want to add a cryptocurrency asset using the existing services available.");
         final String cryptoCurrency1 = "{\"symbol\":\"BITCOIN\",\"location\":\"BITFINEX\",\"amount\":10}";
@@ -98,4 +99,77 @@ public class ApiTest extends AbstractTest {
         Assert.assertEquals(jsonExpected, mvcResult.getResponse().getContentAsString());
     }
 
+    @Test
+    public void shouldReturnCryptoCurrencies() throws Exception {
+
+        logger.info("GIVEN : an user want to get cryptocurrencies using the existing services available.");
+        final String cryptoCurrency1 = "{\"symbol\":\"BITCOIN\",\"location\":\"BITFINEX\",\"amount\":10}";
+        final String cryptoCurrency2 = "{\"symbol\":\"BITCOIN\",\"location\":\"BITFINEX\",\"amount\":20}";
+        final String jsonExpected = "[{\"id\":1,\"symbol\":\"BITCOIN\",\"amount\":30.0,\"entryDate\":\"" + LocalDate.now() + "\"," +
+                "\"location\":\"BITFINEX\",\"oldMarketValue\":" + ( BITCOIN_VALUE * 30 ) + ",\"actualMarketValue\":"
+                + ( BITCOIN_VALUE * 30 ) + "}]";
+
+        logger.info(String.format("WHEN : an user add a cryptocurrency asset by twice calling the service on endpoint %s ", URL_ADD));
+        this.mockMvc.perform(post(URL_ENTRY).content(cryptoCurrency1).contentType(MediaType.APPLICATION_JSON)).andReturn();
+        this.mockMvc.perform(post(URL_ENTRY).content(cryptoCurrency2).contentType(MediaType.APPLICATION_JSON)).andReturn();
+
+        MvcResult mvcResult = this.mockMvc.perform(get(URL_ENTRY).contentType(MediaType.APPLICATION_JSON)).andReturn();
+
+        logger.info("THEN : a json content describing cryptoCurrencies.");
+        Assert.assertEquals(jsonExpected, mvcResult.getResponse().getContentAsString());
+    }
+
+    @Test
+    public void shouldReturnCryptoCurrency() throws Exception {
+
+        logger.info("GIVEN : an user want to get cryptocurrencies using the existing services available.");
+        final String cryptoCurrency1 = "{\"symbol\":\"BITCOIN\",\"location\":\"BITFINEX\",\"amount\":10}";
+        final String cryptoCurrency2 = "{\"symbol\":\"BITCOIN\",\"location\":\"BITFINEX\",\"amount\":20}";
+        final String jsonExpected = "{\"id\":1,\"symbol\":\"BITCOIN\",\"amount\":30.0,\"entryDate\":\"" + LocalDate.now() + "\"," +
+                "\"location\":\"BITFINEX\",\"oldMarketValue\":" + ( BITCOIN_VALUE * 30 ) + ",\"actualMarketValue\":"
+                + ( BITCOIN_VALUE * 30 ) + "}";
+
+        logger.info(String.format("WHEN : an user add a cryptocurrency asset by twice calling the service on endpoint %s ", URL_ADD));
+        this.mockMvc.perform(post(URL_ENTRY).content(cryptoCurrency1).contentType(MediaType.APPLICATION_JSON)).andReturn();
+        this.mockMvc.perform(post(URL_ENTRY).content(cryptoCurrency2).contentType(MediaType.APPLICATION_JSON)).andReturn();
+
+        MvcResult mvcResult =
+                this.mockMvc.perform(get(URL_GET_ENTRY.replace(":symbol", Symbol.BITCOIN.name()))
+                        .contentType(MediaType.APPLICATION_JSON)).andReturn();
+
+        logger.info("THEN : a json content describing cryptoCurrencies.");
+        Assert.assertEquals(jsonExpected, mvcResult.getResponse().getContentAsString());
+    }
+
+
+    @Test
+    public void shouldDeleteCryptoCurrency() throws Exception {
+
+        logger.info("GIVEN : an user want to delte a cryptocurrency using the existing services available.");
+        final String cryptoCurrency1 = "{\"symbol\":\"BITCOIN\",\"location\":\"BITFINEX\",\"amount\":10}";
+        final String cryptoCurrency2 = "{\"symbol\":\"BITCOIN\",\"location\":\"BITFINEX\",\"amount\":20}";
+        final String jsonExpected = "{\"id\":1,\"symbol\":\"BITCOIN\",\"amount\":30.0,\"entryDate\":\"" + LocalDate.now() + "\"," +
+                "\"location\":\"BITFINEX\",\"oldMarketValue\":" + ( BITCOIN_VALUE * 30 ) + ",\"actualMarketValue\":"
+                + ( BITCOIN_VALUE * 30 ) + "}";
+
+        logger.info(String.format("WHEN : an user add a cryptocurrency asset by twice calling the service on endpoint %s ", URL_ADD));
+        this.mockMvc.perform(post(URL_ENTRY).content(cryptoCurrency1).contentType(MediaType.APPLICATION_JSON)).andReturn();
+        this.mockMvc.perform(post(URL_ENTRY).content(cryptoCurrency2).contentType(MediaType.APPLICATION_JSON)).andReturn();
+
+        MvcResult mvcResult =
+                this.mockMvc.perform(get(URL_GET_ENTRY.replace(":symbol", Symbol.BITCOIN.name()))
+                        .contentType(MediaType.APPLICATION_JSON)).andReturn();
+
+        Assert.assertEquals(jsonExpected, mvcResult.getResponse().getContentAsString());
+
+        this.mockMvc.perform(delete(URL_GET_ENTRY.replace(":symbol", Symbol.BITCOIN.name()))
+                        .contentType(MediaType.APPLICATION_JSON)).andReturn();
+
+        mvcResult =
+                this.mockMvc.perform(get(URL_GET_ENTRY.replace(":symbol", Symbol.BITCOIN.name()))
+                        .contentType(MediaType.APPLICATION_JSON)).andReturn();
+
+        logger.info("THEN : an empty json content.");
+        Assert.assertEquals("", mvcResult.getResponse().getContentAsString());
+    }
 }
