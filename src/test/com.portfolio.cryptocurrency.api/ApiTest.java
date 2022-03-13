@@ -22,7 +22,9 @@ import java.time.LocalDate;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 /**
- *  Integration test component
+ * No database used by application
+ * Integration test component
+ * TODO the application can be tested by adding unit test and mocking rest call
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -62,13 +64,13 @@ public class ApiTest extends AbstractTest {
     }
 
     @Test
-    public void shouldReturnCryptoCurrencyWhenUserAddCryptoCurrency() throws Exception {
+    public void shouldReturnCryptoCurrencyWhenUserAddCryptoCurrencyEntry() throws Exception {
 
         logger.info("GIVEN : an user want to add a cryptocurrency asset using the existing services available.");
         final String cryptoCurrency = "{\"symbol\":\"BITCOIN\",\"location\":\"BITFINEX\",\"amount\":10}";
 
         final String jsonExpected = "{\"id\":1,\"symbol\":\"BITCOIN\",\"amount\":10.0,\"entryDate\":\"" + LocalDate.now() + "\"," +
-                "\"location\":\"BITFINEX\",\"oldMarketValue\":" + ( BITCOIN_VALUE * 10 )+ ",\"actualMarketValue\":" + ( BITCOIN_VALUE * 10 ) + "}";
+                "\"location\":\"BITFINEX\",\"oldMarketValue\":" + (BITCOIN_VALUE * 10) + ",\"actualMarketValue\":" + (BITCOIN_VALUE * 10) + "}";
 
         logger.info(String.format("WHEN : an user add a cryptoCurrency asset by calling the service on endpoint %s with content = %s", URL_ADD, cryptoCurrency));
         final ResultActions result = this.mockMvc
@@ -86,7 +88,7 @@ public class ApiTest extends AbstractTest {
         final String cryptoCurrency2 = "{\"symbol\":\"BITCOIN\",\"location\":\"BITFINEX\",\"amount\":20}";
 
         final String jsonExpected = "{\"id\":1,\"symbol\":\"BITCOIN\",\"amount\":30.0,\"entryDate\":\"" + LocalDate.now() + "\"," +
-                "\"location\":\"BITFINEX\",\"oldMarketValue\":" + ( BITCOIN_VALUE * 30 ) + ",\"actualMarketValue\":" + ( BITCOIN_VALUE * 30 ) + "}";
+                "\"location\":\"BITFINEX\",\"oldMarketValue\":" + (BITCOIN_VALUE * 30) + ",\"actualMarketValue\":" + (BITCOIN_VALUE * 30) + "}";
 
         logger.info(String.format("WHEN : an user add a cryptocurrency asset by twice calling the service on endpoint %s ", URL_ADD));
         this.mockMvc
@@ -106,8 +108,8 @@ public class ApiTest extends AbstractTest {
         final String cryptoCurrency1 = "{\"symbol\":\"BITCOIN\",\"location\":\"BITFINEX\",\"amount\":10}";
         final String cryptoCurrency2 = "{\"symbol\":\"BITCOIN\",\"location\":\"BITFINEX\",\"amount\":20}";
         final String jsonExpected = "[{\"id\":1,\"symbol\":\"BITCOIN\",\"amount\":30.0,\"entryDate\":\"" + LocalDate.now() + "\"," +
-                "\"location\":\"BITFINEX\",\"oldMarketValue\":" + ( BITCOIN_VALUE * 30 ) + ",\"actualMarketValue\":"
-                + ( BITCOIN_VALUE * 30 ) + "}]";
+                "\"location\":\"BITFINEX\",\"oldMarketValue\":" + (BITCOIN_VALUE * 30) + ",\"actualMarketValue\":"
+                + (BITCOIN_VALUE * 30) + "}]";
 
         logger.info(String.format("WHEN : an user add a cryptocurrency asset by twice calling the service on endpoint %s ", URL_ADD));
         this.mockMvc.perform(post(URL_ENTRY).content(cryptoCurrency1).contentType(MediaType.APPLICATION_JSON)).andReturn();
@@ -126,8 +128,8 @@ public class ApiTest extends AbstractTest {
         final String cryptoCurrency1 = "{\"symbol\":\"BITCOIN\",\"location\":\"BITFINEX\",\"amount\":10}";
         final String cryptoCurrency2 = "{\"symbol\":\"BITCOIN\",\"location\":\"BITFINEX\",\"amount\":20}";
         final String jsonExpected = "{\"id\":1,\"symbol\":\"BITCOIN\",\"amount\":30.0,\"entryDate\":\"" + LocalDate.now() + "\"," +
-                "\"location\":\"BITFINEX\",\"oldMarketValue\":" + ( BITCOIN_VALUE * 30 ) + ",\"actualMarketValue\":"
-                + ( BITCOIN_VALUE * 30 ) + "}";
+                "\"location\":\"BITFINEX\",\"oldMarketValue\":" + (BITCOIN_VALUE * 30) + ",\"actualMarketValue\":"
+                + (BITCOIN_VALUE * 30) + "}";
 
         logger.info(String.format("WHEN : an user add a cryptocurrency asset by twice calling the service on endpoint %s ", URL_ADD));
         this.mockMvc.perform(post(URL_ENTRY).content(cryptoCurrency1).contentType(MediaType.APPLICATION_JSON)).andReturn();
@@ -141,16 +143,15 @@ public class ApiTest extends AbstractTest {
         Assert.assertEquals(jsonExpected, mvcResult.getResponse().getContentAsString());
     }
 
-
     @Test
     public void shouldDeleteCryptoCurrency() throws Exception {
 
-        logger.info("GIVEN : an user want to delte a cryptocurrency using the existing services available.");
+        logger.info("GIVEN : an user want to delete a cryptocurrency using the existing services available.");
         final String cryptoCurrency1 = "{\"symbol\":\"BITCOIN\",\"location\":\"BITFINEX\",\"amount\":10}";
         final String cryptoCurrency2 = "{\"symbol\":\"BITCOIN\",\"location\":\"BITFINEX\",\"amount\":20}";
         final String jsonExpected = "{\"id\":1,\"symbol\":\"BITCOIN\",\"amount\":30.0,\"entryDate\":\"" + LocalDate.now() + "\"," +
-                "\"location\":\"BITFINEX\",\"oldMarketValue\":" + ( BITCOIN_VALUE * 30 ) + ",\"actualMarketValue\":"
-                + ( BITCOIN_VALUE * 30 ) + "}";
+                "\"location\":\"BITFINEX\",\"oldMarketValue\":" + (BITCOIN_VALUE * 30) + ",\"actualMarketValue\":"
+                + (BITCOIN_VALUE * 30) + "}";
 
         logger.info(String.format("WHEN : an user add a cryptocurrency asset by twice calling the service on endpoint %s ", URL_ADD));
         this.mockMvc.perform(post(URL_ENTRY).content(cryptoCurrency1).contentType(MediaType.APPLICATION_JSON)).andReturn();
@@ -163,7 +164,7 @@ public class ApiTest extends AbstractTest {
         Assert.assertEquals(jsonExpected, mvcResult.getResponse().getContentAsString());
 
         this.mockMvc.perform(delete(URL_GET_ENTRY.replace(":symbol", Symbol.BITCOIN.name()))
-                        .contentType(MediaType.APPLICATION_JSON)).andReturn();
+                .contentType(MediaType.APPLICATION_JSON)).andReturn();
 
         mvcResult =
                 this.mockMvc.perform(get(URL_GET_ENTRY.replace(":symbol", Symbol.BITCOIN.name()))
@@ -171,5 +172,34 @@ public class ApiTest extends AbstractTest {
 
         logger.info("THEN : an empty json content.");
         Assert.assertEquals("", mvcResult.getResponse().getContentAsString());
+    }
+
+    @Test
+    public void shouldUpdateCryptoCurrency() throws Exception {
+
+        logger.info("GIVEN : an user want to update a cryptocurrency using the existing services available.");
+        final String cryptoCurrency1 = "{\"symbol\":\"BITCOIN\",\"location\":\"BITFINEX\",\"amount\":10}";
+        final String cryptoCurrency2 = "{\"symbol\":\"BITCOIN\",\"location\":\"BITFINEX\",\"amount\":20}";
+
+        final String fullCryptoCurrency = "{\"id\":1,\"symbol\":\"BITCOIN\",\"amount\":10.0,\"entryDate\":\"" + LocalDate.now() + "\"," +
+                "\"location\":\"BITFINEX\",\"oldMarketValue\":" + (BITCOIN_VALUE * 10) + ",\"actualMarketValue\":"
+                + (BITCOIN_VALUE * 10) + ", \"assets\": [{\"number\": 10.0, \"valueAtTheTimeOfPurchase\" : " + BITCOIN_VALUE + "}]}";
+
+        final String expectedCryptoCurrency = "{\"id\":1,\"symbol\":\"BITCOIN\",\"amount\":10.0,\"entryDate\":\"2022-03-13\"," +
+                "\"location\":\"BITFINEX\",\"oldMarketValue\":" + (BITCOIN_VALUE * 10) + ",\"actualMarketValue\":" + (BITCOIN_VALUE * 10) + "}";
+
+        logger.info(String.format("WHEN : an user add a cryptocurrency asset by twice calling the service on endpoint %s ", URL_ADD));
+        this.mockMvc.perform(post(URL_ENTRY).content(cryptoCurrency1).contentType(MediaType.APPLICATION_JSON)).andReturn();
+        this.mockMvc.perform(post(URL_ENTRY).content(cryptoCurrency2).contentType(MediaType.APPLICATION_JSON)).andReturn();
+
+
+        this.mockMvc.perform(put(URL_ENTRY).content(fullCryptoCurrency).contentType(MediaType.APPLICATION_JSON)).andReturn();
+
+        MvcResult mvcResult =
+                this.mockMvc.perform(get(URL_GET_ENTRY.replace(":symbol", Symbol.BITCOIN.name()))
+                        .contentType(MediaType.APPLICATION_JSON)).andReturn();
+
+        logger.info("THEN : a cryptoCurrency updated.");
+        Assert.assertEquals(expectedCryptoCurrency, mvcResult.getResponse().getContentAsString());
     }
 }

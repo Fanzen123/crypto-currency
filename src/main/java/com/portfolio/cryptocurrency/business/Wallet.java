@@ -1,10 +1,7 @@
 package com.portfolio.cryptocurrency.business;
 
-import com.contract.cryptocurrency_portfolio_contract.dto.CryptoCurrency;
-import com.contract.cryptocurrency_portfolio_contract.dto.GlobalCryptoCurrency;
-import com.contract.cryptocurrency_portfolio_contract.dto.Symbol;
-import com.portfolio.cryptocurrency.bo.Asset;
-import com.portfolio.cryptocurrency.bo.CryptoCurrencyDetails;
+import com.contract.cryptocurrency_portfolio_contract.dto.*;
+import com.portfolio.cryptocurrency.util.CryptoCurrencyMapper;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -18,60 +15,97 @@ import java.util.stream.Collectors;
 public class Wallet {
 
     private final Market market = new Market();
-    private final HashMap<Symbol, CryptoCurrencyDetails> map = new HashMap<>();
+    private final HashMap<Symbol, FullCryptoCurrency> map = new HashMap<>();
 
     /**
-     * Persist a cryptoCurrency asset
-     * @param cryptoCurrency
+     * Add a cryptoCurrency asset
+     * @param cryptoCurrencyEntry a cryptoCurrencyEntry
      * @return a global state
      * @throws IOException an IOException
      */
-    public GlobalCryptoCurrency addCryptoCurrencyAsset(CryptoCurrency cryptoCurrency) throws IOException {
+    public CryptoCurrency addCryptoCurrencyAsset(CryptoCurrencyEntry cryptoCurrencyEntry) throws IOException {
 
-        CryptoCurrencyDetails cryptoCurrencyBusiness;
+        FullCryptoCurrency fullCryptoCurrency;
 
-        double actualMarketValue = market.getActualValue(cryptoCurrency.getSymbol());
+        double actualMarketValue = market.getActualValue(cryptoCurrencyEntry.getSymbol());
 
-        if (!map.containsKey(cryptoCurrency.getSymbol())) {
-            cryptoCurrencyBusiness = new CryptoCurrencyDetails();
-            cryptoCurrencyBusiness.setId(map.size() + 1L);
-            cryptoCurrencyBusiness.setSymbol(cryptoCurrency.getSymbol());
-            cryptoCurrencyBusiness.setAmount(cryptoCurrency.getAmount());
-            cryptoCurrencyBusiness.setEntryDate(LocalDate.now());
-            double globalActualMarketValue = actualMarketValue * cryptoCurrencyBusiness.getAmount();
-            cryptoCurrencyBusiness.setActualMarketValue(globalActualMarketValue);
-            map.put(cryptoCurrency.getSymbol(), cryptoCurrencyBusiness);
+        if (!map.containsKey(cryptoCurrencyEntry.getSymbol())) {
+            fullCryptoCurrency = new FullCryptoCurrency();
+            fullCryptoCurrency.setId(map.size() + 1L);
+            fullCryptoCurrency.setSymbol(cryptoCurrencyEntry.getSymbol());
+            fullCryptoCurrency.setAmount(cryptoCurrencyEntry.getAmount());
+            fullCryptoCurrency.setEntryDate(LocalDate.now());
+            double globalActualMarketValue = actualMarketValue * fullCryptoCurrency.getAmount();
+            fullCryptoCurrency.setActualMarketValue(globalActualMarketValue);
+            map.put(cryptoCurrencyEntry.getSymbol(), fullCryptoCurrency);
         } else {
-            cryptoCurrencyBusiness = map.get(cryptoCurrency.getSymbol());
-            cryptoCurrencyBusiness.setAmount(cryptoCurrencyBusiness.getAmount() + cryptoCurrency.getAmount());
-            cryptoCurrencyBusiness.setActualMarketValue(actualMarketValue * cryptoCurrencyBusiness.getAmount());
+            fullCryptoCurrency = map.get(cryptoCurrencyEntry.getSymbol());
+            fullCryptoCurrency.setAmount(fullCryptoCurrency.getAmount() + cryptoCurrencyEntry.getAmount());
+            fullCryptoCurrency.setActualMarketValue(actualMarketValue * fullCryptoCurrency.getAmount());
         }
 
-        cryptoCurrencyBusiness.getAssets().add(
-                new Asset(cryptoCurrency.getAmount(), actualMarketValue));
+        Asset newAsset = new Asset();
+        newAsset.setNumber(cryptoCurrencyEntry.getAmount());
+        newAsset.setValueAtTheTimeOfPurchase(actualMarketValue);
+        fullCryptoCurrency.getAssets().add(newAsset);
 
-        Double valueAtTheTimeOfPurchase = cryptoCurrencyBusiness.getAssets().stream()
+        Double valueAtTheTimeOfPurchase = fullCryptoCurrency.getAssets().stream()
                 .map(asset -> asset.getNumber() * asset.getValueAtTheTimeOfPurchase())
                 .reduce(0D, Double::sum);
 
-        cryptoCurrencyBusiness.setOldMarketValue(valueAtTheTimeOfPurchase);
+        fullCryptoCurrency.setOldMarketValue(valueAtTheTimeOfPurchase);
 
-        cryptoCurrencyBusiness.setLocation(cryptoCurrency.getLocation());
+        fullCryptoCurrency.setLocation(cryptoCurrencyEntry.getLocation());
 
-        return cryptoCurrencyBusiness;
+        return CryptoCurrencyMapper.map(fullCryptoCurrency);
     }
 
-    public List<GlobalCryptoCurrency> getCryptoCurrencies() {
-        return map.values().stream().collect(Collectors.toList());
+    /**
+     * GetCryptoCurrencies
+     * @return a getCryptoCurrencies
+     */
+    public List<CryptoCurrency> getCryptoCurrencies() {
+        return map.values().stream()
+                .map(CryptoCurrencyMapper::map)
+                .collect(Collectors.toList());
     }
 
-    public GlobalCryptoCurrency getCryptoCurrency(Symbol symbol) {
+    /**
+     * GetCryptoCurrency
+     * @param symbol a symbol
+     * @return a cryptoCurrency
+     */
+    public CryptoCurrency getCryptoCurrency(Symbol symbol) {
+        return map.values().stream()
+                .map(CryptoCurrencyMapper::map)
+                .filter(cryptoCurrencyBusiness -> cryptoCurrencyBusiness.getSymbol().equals(symbol))
+                .findFirst().orElse(null);
+    }
+
+    /**
+     * GetFullCryptoCurrency
+     * @param symbol a symbol
+     * @return a fullCryptoCurrency
+     */
+    public FullCryptoCurrency getFullCryptoCurrency(Symbol symbol) {
         return map.values().stream()
                 .filter(cryptoCurrencyBusiness -> cryptoCurrencyBusiness.getSymbol().equals(symbol))
                 .findFirst().orElse(null);
     }
 
+    /**
+     * DeleteCryptoCurrency
+     * @param symbol a symbol
+     */
     public void deleteCryptoCurrency(Symbol symbol) {
         map.remove(symbol);
+    }
+
+    /**
+     * UpdateCryptoCurrency
+     * @param fullCryptoCurrency a fullCryptoCurrency
+     */
+    public void updateCryptoCurrency(FullCryptoCurrency fullCryptoCurrency) {
+        map.replace(fullCryptoCurrency.getSymbol(), fullCryptoCurrency);
     }
 }

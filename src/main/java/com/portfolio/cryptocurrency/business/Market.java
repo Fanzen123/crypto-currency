@@ -44,9 +44,12 @@ public class Market {
         final Gson gson = builder.create();
         JsonObject  jsonObject = gson.fromJson(result, JsonObject.class);
 
-        return jsonObject.get(PRICE_PARAM).getAsDouble();
+        return roundValue(jsonObject.get(PRICE_PARAM).getAsDouble());
     }
 
+    static public Double roundValue(Double value) {
+        return Math.round(value * 100.0) / 100.0;
+    }
 
     public String doGetRequest(String url) throws IOException {
         HttpGet request = new HttpGet(url);
